@@ -27,15 +27,4 @@ public class SessionController {
         return ResponseEntity.ok(sessionRepository.findAll());
     }
 
-    @PostMapping
-    public ResponseEntity<?> create(@RequestBody Session session) {
-        Long trainerId = session.getTrainer().getId();
-        Optional<Trainer> opt = trainerRepository.findById(trainerId);
-        if (opt.isEmpty()) {
-            return ResponseEntity.badRequest().body("Трейнер с id= " + trainerId + "не найден");
-        }
-        session.setTrainer(opt.get());
-        Session saved = sessionRepository.save(session);
-        return ResponseEntity.ok(saved);
-    }
 }

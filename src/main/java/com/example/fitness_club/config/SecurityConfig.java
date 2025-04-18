@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .map(user -> org.springframework.security.core.userdetails.User
                         .withUsername(user.getEmail())
                         .password(user.getPassword())
-                        .roles("USER")
+                        .roles(user.getRole().name())
                         .build()
                 )
                 .orElseThrow(() ->
@@ -57,12 +57,12 @@ public class SecurityConfig {
                 // права доступа
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .anyRequest().hasRole("USER")
                 )
                 // вместо deprecated httpBasic()
-                .httpBasic(withDefaults());
-
-        http.authenticationProvider(authenticationProvider());
+                .httpBasic(withDefaults())
+                .authenticationProvider(authenticationProvider());
         return http.build();
     }
 }

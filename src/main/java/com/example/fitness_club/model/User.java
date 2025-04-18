@@ -19,6 +19,9 @@ public class User {
 
     private String phone;
 
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     public User() {}
     public User(Long id, String firstName, String lastName, String email, String password, String phone) {
         this.id = id;
@@ -27,6 +30,28 @@ public class User {
         this.email = email;
         this.password = password;
         this.phone = phone;
+        this.role = Role.USER;
+    }
+
+    public User(String firstName,
+                String lastName,
+                String email,
+                String password,
+                String phone) {
+        this.firstName = firstName;
+        this.lastName  = lastName;
+        this.email     = email;
+        this.password  = password;
+        this.phone     = phone;
+        this.role      = Role.USER;    // по умолчанию
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public Long getId() {

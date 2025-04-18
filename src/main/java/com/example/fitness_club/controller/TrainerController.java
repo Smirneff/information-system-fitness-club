@@ -23,11 +23,4 @@ public class TrainerController {
         List<Trainer> all = trainerRepository.findAll();
         return ResponseEntity.ok(all);
     }
-
-    @PostMapping
-    public ResponseEntity<Trainer> createTrainer(@RequestBody Trainer trainer) {
-        Trainer saved = trainerRepository.save(trainer);
-        return ResponseEntity.ok(saved);
-    }
-
 }

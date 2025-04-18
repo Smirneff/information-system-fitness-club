@@ -31,31 +31,6 @@ public class BookingController {
         return ResponseEntity.ok(bookingRepository.findAll());
     }
 
-    @PostMapping
-    public ResponseEntity<?> create(@RequestBody Booking booking){
-        Optional<User> u = userRepository.findById(booking.getUser().getId());
-        if(u.isEmpty()){
-            return ResponseEntity.badRequest().body("Пользователь с id= "+booking.getUser().getId()+ "не найден");
-        }
-        Optional<Session> s = sessionRepository.findById(booking.getSession().getId());
-        if(s.isEmpty()){
-            return ResponseEntity.badRequest()
-                    .body("Сессия с id= " + booking.getSession().getId() + "не найдена");
-        }
-
-        Booking b = new Booking(u.get(), s.get());
-        Booking saved = bookingRepository.save(b);
-        return ResponseEntity.ok(saved);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> cancel(@PathVariable Long id) {
-        if (!bookingRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        bookingRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> listByUser(@PathVariable Long userId) {

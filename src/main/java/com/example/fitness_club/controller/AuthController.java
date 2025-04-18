@@ -1,5 +1,6 @@
 package com.example.fitness_club.controller;
 
+import com.example.fitness_club.model.Role;
 import com.example.fitness_club.model.User;
 import com.example.fitness_club.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ public class AuthController {
         }
         // хешируем пароль
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole(Role.USER);
         User saved = userRepository.save(user);
         return ResponseEntity.ok(saved);
     }
