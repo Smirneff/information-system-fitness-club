@@ -47,4 +47,23 @@ public class BookingController {
         Booking saved = bookingRepository.save(b);
         return ResponseEntity.ok(saved);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> cancel(@PathVariable Long id) {
+        if (!bookingRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        bookingRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> listByUser(@PathVariable Long userId) {
+        Optional<User> u = userRepository.findById(userId);
+        if(u.isEmpty()){
+            return ResponseEntity.badRequest().body("Пользователь с id= " + userId + "не найден");
+        }
+        List<Booking> bookings = bookingRepository.findByUserId(userId);
+        return ResponseEntity.ok(bookings);
+    }
 }
