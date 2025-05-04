@@ -1,12 +1,13 @@
 package com.example.fitness_club.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "bookings",
-uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "session_id"}))
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "session_id"}))
 public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,10 +15,12 @@ public class Booking {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @NotNull(message = "User must be provided")
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "session_id", nullable = false)
+    @NotNull(message = "Session must be provided")
     private Session session;
 
     private LocalDateTime createdAt;
@@ -63,4 +66,3 @@ public class Booking {
         this.createdAt = createdAt;
     }
 }
-

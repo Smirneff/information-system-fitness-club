@@ -5,6 +5,7 @@ import com.example.fitness_club.model.Session;
 import com.example.fitness_club.model.Trainer;
 import com.example.fitness_club.repository.SessionRepository;
 import com.example.fitness_club.repository.TrainerRepository;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,7 +41,8 @@ public class AdminSessionController {
 
     // POST /api/admin/sessions
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Session session) {
+    public ResponseEntity<?> create(@Valid @RequestBody Session session) {
+        // 1) Проверяем, что тренер существует
         Long trainerId = session.getTrainer().getId();
         Optional<Trainer> t = trainerRepo.findById(trainerId);
         if (t.isEmpty()) {
@@ -48,6 +50,24 @@ public class AdminSessionController {
                     .body("Trainer with id=" + trainerId + " not found");
         }
         session.setTrainer(t.get());
+
+        // 2) Проверяем на пересечение по времени
+        List<Session> conflicts = sessionRepo
+                .findByTrainerIdAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(
+                        trainerId, session.getEndTime(), session.getStartTime()
+                );
+        if (!conflicts.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body("Trainer is already booked in this time range");
+        }
+
+        // 3) Capacity проверяет @Positive валидация на entity, но можно двойную проверку
+        if (session.getCapacity() == null || session.getCapacity() <= 0) {
+            return ResponseEntity.badRequest()
+                    .body("Capacity must be a positive integer");
+        }
+
+        // 4) Сохраняем
         Session saved = sessionRepo.save(session);
         return ResponseEntity.ok(saved);
     }
@@ -55,12 +75,15 @@ public class AdminSessionController {
     // PUT /api/admin/sessions/{id}
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id,
-                                    @RequestBody Session session) {
+                                    @Valid @RequestBody Session session) {
         return sessionRepo.findById(id)
                 .map(existing -> {
+                    // Обновляем поля
                     existing.setTitle(session.getTitle());
                     existing.setStartTime(session.getStartTime());
                     existing.setEndTime(session.getEndTime());
+
+                    // Проверка тренера
                     Long trId = session.getTrainer().getId();
                     Optional<Trainer> tt = trainerRepo.findById(trId);
                     if (tt.isEmpty()) {
@@ -68,6 +91,26 @@ public class AdminSessionController {
                                 .body("Trainer with id=" + trId + " not found");
                     }
                     existing.setTrainer(tt.get());
+
+                    // Проверяем на пересечение, игнорируя саму себя
+                    List<Session> conflicts = sessionRepo
+                            .findByTrainerIdAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(
+                                    trId, session.getEndTime(), session.getStartTime()
+                            );
+                    conflicts.removeIf(s -> s.getId().equals(existing.getId()));
+                    if (!conflicts.isEmpty()) {
+                        return ResponseEntity.badRequest()
+                                .body("Trainer is already booked in this time range");
+                    }
+
+                    // Валидация и установка capacity
+                    if (session.getCapacity() == null || session.getCapacity() <= 0) {
+                        return ResponseEntity.badRequest()
+                                .body("Capacity must be a positive integer");
+                    }
+                    existing.setCapacity(session.getCapacity());
+
+                    // Сохраняем изменения
                     return ResponseEntity.ok(sessionRepo.save(existing));
                 })
                 .orElse(ResponseEntity.notFound().build());

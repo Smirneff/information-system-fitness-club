@@ -4,6 +4,7 @@ package com.example.fitness_club.controller.admin;
 import com.example.fitness_club.model.Role;
 import com.example.fitness_club.model.User;
 import com.example.fitness_club.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +41,7 @@ public class AdminUserController {
 
     // POST /api/admin/users
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody User user) {
+    public ResponseEntity<?> create(@Valid @RequestBody User user) {
         if (userRepo.findByEmail(user.getEmail()).isPresent()) {
             return ResponseEntity.badRequest()
                     .body("Email already in use");
@@ -56,7 +57,7 @@ public class AdminUserController {
     // PUT /api/admin/users/{id}
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id,
-                                    @RequestBody User user) {
+                                    @Valid @RequestBody User user) {
         return userRepo.findById(id)
                 .map(existing -> {
                     existing.setFirstName(user.getFirstName());
@@ -69,7 +70,8 @@ public class AdminUserController {
                     if (user.getRole() != null) {
                         existing.setRole(user.getRole());
                     }
-                    return ResponseEntity.ok(userRepo.save(existing));
+                    User updated = userRepo.save(existing);
+                    return ResponseEntity.ok(updated);
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
